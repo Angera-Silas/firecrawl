@@ -237,6 +237,8 @@ describe("MCP action log contract", () => {
       mcp_client: null,
       mcp_client_source: null,
       llm_model: null,
+      reported_model: null,
+      thread_id: null,
       duration_ms: null,
       invalid_arguments: [],
     });
@@ -248,6 +250,8 @@ describe("MCP action log contract", () => {
         mcp_client: "codex",
         mcp_client_source: "user_agent",
         llm_model: " gpt-6.1-sol ",
+        reported_model: " claude-opus-5-5 ",
+        thread_id: "task-7f3c",
         duration_ms: 55,
         invalid_arguments: ["limit:invalid_type", "*:unrecognized_keys"],
       }),
@@ -256,6 +260,8 @@ describe("MCP action log contract", () => {
       mcp_client: "codex",
       mcp_client_source: "user_agent",
       llm_model: "gpt-6.1-sol",
+      reported_model: "claude-opus-5-5",
+      thread_id: "task-7f3c",
       duration_ms: 55,
       invalid_arguments: ["limit:invalid_type", "*:unrecognized_keys"],
     });
@@ -290,6 +296,12 @@ describe("MCP action log contract", () => {
     );
     expect(() => input({ mcp_client: "fc-secret" })).toThrow(
       "mcp_client must not contain secret-like values",
+    );
+    expect(() => input({ thread_id: "t".repeat(129) })).toThrow(
+      "thread_id must be at most 128 characters",
+    );
+    expect(() => input({ reported_model: "sk-secret" })).toThrow(
+      "reported_model must not contain secret-like values",
     );
   });
 
@@ -373,6 +385,8 @@ describe("MCP action log contract", () => {
           mcp_client: "codex-cli-rs",
           mcp_client_source: "user_agent",
           llm_model: "gpt-6.1-sol",
+          reported_model: "claude-opus-5-5",
+          thread_id: "task-7f3c",
           duration_ms: 55,
           invalid_arguments: ["limit:invalid_type"],
         }),
@@ -391,6 +405,8 @@ describe("MCP action log contract", () => {
       mcp_client: "codex-cli-rs",
       mcp_client_source: "user_agent",
       llm_model: "gpt-6.1-sol",
+      reported_model: "claude-opus-5-5",
+      thread_id: "task-7f3c",
       duration_ms: 55,
       invalid_arguments: ["limit:invalid_type"],
     });
