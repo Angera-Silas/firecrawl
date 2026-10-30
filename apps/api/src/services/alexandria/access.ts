@@ -34,6 +34,14 @@ const requirementsSchema = z.object({
   ),
 });
 
+// Also the answer when the ledger cannot be read: that is not a missing
+// acceptance, and asking for one sends a team that accepted back to the dashboard.
+const agreementsUnavailable = () =>
+  refusal(
+    503,
+    "Provider agreements are unavailable. No provider was executed.",
+  );
+
 export async function authorizeProviders(
   teamId: string,
   calls: ProviderCall[],
@@ -67,10 +75,7 @@ export async function authorizeProviders(
     answered.size !== providers.length ||
     providers.some(provider => !answered.has(provider))
   )
-    return refusal(
-      503,
-      "Provider agreements are unavailable. No provider was executed.",
-    );
+    return agreementsUnavailable();
   if (config.USE_DB_AUTHENTICATION !== true) return undefined;
 
   let ledger: Map<string, LedgerAcceptance> | undefined;
@@ -88,6 +93,7 @@ export async function authorizeProviders(
         orgId !== null
       ) {
         ledger ??= await acceptedProviders(teamId, orgId);
+        if (!ledger) return agreementsUnavailable();
         const accepted = ledger.get(item.provider);
         if (
           matchesAcceptance(accepted, item.terms) &&
@@ -112,6 +118,7 @@ export async function authorizeProviders(
       continue;
     if (orgId !== null) {
       ledger ??= await acceptedProviders(teamId, orgId);
+      if (!ledger) return agreementsUnavailable();
       const accepted = ledger.get(item.provider);
       if (matchesAcceptance(accepted, item.terms)) continue;
     }
